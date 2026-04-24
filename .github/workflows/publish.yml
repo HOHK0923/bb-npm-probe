@@ -26,13 +26,18 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           registry-url: https://registry.npmjs.org
+      - name: Upgrade npm (need 11.5.1+ for Trusted Publisher)
+        run: npm install -g npm@latest
+      - run: npm --version
       - name: Bump version
         if: github.event_name == 'workflow_dispatch'
         run: |
           cd pkg
           node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json'));p.version='${{ inputs.version }}';fs.writeFileSync('package.json',JSON.stringify(p,null,2));"
-      - name: Publish
+      - name: Publish (Trusted Publisher OIDC, no token)
         working-directory: pkg
-        run: npm --ignore-scripts publish --tag ${{ inputs.tag }} --provenance
+        env:
+          NODE_AUTH_TOKEN: ""
+        run: npm --ignore-scripts publish --tag ${{ inputs.tag }} --provenance --access public
