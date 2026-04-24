@@ -1,0 +1,35 @@
+# PROBE 2C — Branch-name trust
+# Dispatch from a branch NOT in the trusted publisher allowlist.
+# Trusted publisher typically allows only main. Test main-1, refs with encoded chars, etc.
+name: probe-2C-branch
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version (semver, must be fresh)"
+        required: true
+        default: "1.0.4"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+      - name: Emit ref info
+        run: |
+          echo "github.ref=${{ github.ref }}"
+          echo "github.ref_name=${{ github.ref_name }}"
+      - run: |
+          cd pkg
+          node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json'));p.version='${{ inputs.version }}';fs.writeFileSync('package.json',JSON.stringify(p,null,2));"
+          npm --ignore-scripts publish --tag latest --provenance

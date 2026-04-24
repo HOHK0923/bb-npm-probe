@@ -1,0 +1,14 @@
+{
+  "name": "@hohk/bb-test-pkg",
+  "version": "1.0.0",
+  "description": "security research baseline package (bounty research - HOHK)",
+  "main": "index.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HOHK0923/bb-npm-probe"
+  }
+}

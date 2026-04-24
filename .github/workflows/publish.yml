@@ -1,0 +1,38 @@
+name: publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish (semver)"
+        required: true
+        default: "1.0.1"
+      tag:
+        description: "dist-tag"
+        required: true
+        default: "latest"
+  push:
+    tags: ["v*"]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+      - name: Bump version
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          cd pkg
+          node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json'));p.version='${{ inputs.version }}';fs.writeFileSync('package.json',JSON.stringify(p,null,2));"
+      - name: Publish
+        working-directory: pkg
+        run: npm --ignore-scripts publish --tag ${{ inputs.tag }} --provenance

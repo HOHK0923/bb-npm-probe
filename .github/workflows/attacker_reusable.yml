@@ -1,0 +1,23 @@
+# PROBE 2A — Reusable workflow breakout
+# Does npm accept OIDC token minted by a workflow that CALLS the trusted publish.yml
+# (rather than being publish.yml itself)?
+name: probe-2A-reusable
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version (semver, must be fresh)"
+        required: true
+        default: "1.0.2"
+
+jobs:
+  call-publish:
+    permissions:
+      id-token: write
+      contents: read
+    uses: ./.github/workflows/publish.yml
+    secrets: inherit
+    with:
+      version: ${{ inputs.version }}
+      tag: latest

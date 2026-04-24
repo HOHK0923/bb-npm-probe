@@ -1,0 +1,34 @@
+# PROBE 2B — Environment bypass
+# Trusted Publisher binds env=production. Test what happens when env is different/missing.
+name: probe-2B-env
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version (semver, must be fresh)"
+        required: true
+        default: "1.0.3"
+      env_name:
+        description: "environment to bind to (e.g. staging, or empty)"
+        required: false
+        default: "staging"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  publish_wrong_env:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.env_name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+      - run: |
+          cd pkg
+          node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json'));p.version='${{ inputs.version }}';fs.writeFileSync('package.json',JSON.stringify(p,null,2));"
+          npm --ignore-scripts publish --tag latest --provenance
